@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'login_store.dart';
 
 class LoginPage extends StatefulWidget {
@@ -9,7 +10,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final LoginStore store = LoginStore();
+  final LoginStore store = Modular.get<LoginStore>();
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
 
