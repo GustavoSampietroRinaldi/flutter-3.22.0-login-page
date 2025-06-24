@@ -11,10 +11,10 @@ dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.6
   mobx: ^2.3.3+2
   flutter_mobx: ^2.2.1+1
   mobx_widget: ^0.5.1
+  flutter_modular: ^6.3.4
 
 dev_dependencies:
   flutter_test:
