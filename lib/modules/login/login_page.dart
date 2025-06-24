@@ -1,5 +1,6 @@
-// lib/login_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'login_store.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -8,44 +9,15 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Controllers e estados para email, senha e loading
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _passwordVisible = false;
-  bool _isLoading = false;
-
-  // Métodos validação
-  bool get _isEmailValid {
-    final text = _emailController.text;
-    return text.contains('@') && text.contains('.com');
-  }
-  bool get _isPasswordValid {
-    return _passwordController.text.isNotEmpty;
-  }
-  bool get _isFormValid {
-    return _isEmailValid && _isPasswordValid;
-  }
+  final LoginStore store = LoginStore();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
-  }
-
-  void _onLoginPressed() {
-    if (!_isFormValid) return;
-    setState(() {
-      _isLoading = true;
-    });
-    // Simular autenticação
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    });
   }
 
   void _onForgotPassword() {
@@ -77,7 +49,6 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Header
                 const Icon(
                   Icons.person_outline,
                   size: 48,
@@ -93,104 +64,106 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                // Campos de input
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Column(
                     children: [
-                      // Email
-                      TextField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.2),
-                          hintText: 'Digite seu email corporativo',
-                          hintStyle: const TextStyle(color: Colors.white),
-                          prefixIcon: const Icon(Icons.email_outlined, color: Colors.white),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        onChanged: (_) {
-                          setState(() {}); // atualizar estado de validação
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      // Senha
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: !_passwordVisible,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.2),
-                          hintText: 'Sua senha secreta',
-                          hintStyle: const TextStyle(color: Colors.white),
-                          prefixIcon: const Icon(Icons.lock_outlined, color: Colors.white),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _passwordVisible ? Icons.visibility : Icons.visibility_off,
-                              color: Colors.white,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _passwordVisible = !_passwordVisible;
-                              });
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        onChanged: (_) {
-                          setState(() {});
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      // Botão Entrar
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: _isFormValid && !_isLoading ? _onLoginPressed : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.amber[600],
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
+                      Observer(builder: (_) {
+                        return TextField(
+                          onChanged: store.setEmail,
+                          keyboardType: TextInputType.emailAddress,
+                          focusNode: _emailFocus,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.2),
+                            hintText: 'Digite seu email corporativo',
+                            hintStyle: const TextStyle(color: Colors.white),
+                            prefixIcon: const Icon(Icons.email_outlined, color: Colors.white),
+                            suffixIcon: store.email.isEmpty
+                                ? null
+                                : (store.isEmailValid
+                                ? const Icon(Icons.check, color: Colors.green)
+                                : const Icon(Icons.error, color: Colors.red)),
+                            border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
                             ),
                           ),
-                          child: _isLoading
-                              ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                            ),
-                          )
-                              : const Text(
-                            'Entrar',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
+                        );
+                      }),
                       const SizedBox(height: 16),
-                      // Rodapé
+                      Observer(builder: (_) {
+                        return TextField(
+                          onChanged: store.setPassword,
+                          obscureText: !store.passwordVisible,
+                          focusNode: _passwordFocus,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.2),
+                            hintText: 'Sua senha secreta',
+                            hintStyle: const TextStyle(color: Colors.white),
+                            prefixIcon: const Icon(Icons.lock_outlined, color: Colors.white),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                store.passwordVisible ? Icons.visibility : Icons.visibility_off,
+                                color: Colors.white,
+                              ),
+                              onPressed: store.togglePasswordVisibility,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 24),
+                      Observer(builder: (_) {
+                        return SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: store.isFormValid && !store.isLoading
+                                ? () async {
+                              await store.login();
+                            }
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber[600],
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: store.isLoading
+                                ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                              ),
+                            )
+                                : const Text(
+                              'Entrar',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 16),
                       GestureDetector(
                         onTap: _onForgotPassword,
                         child: const Text(
                           'Esqueceu a senha?',
                           style: TextStyle(
-                            decoration: TextDecoration.underline,
                             color: Colors.white,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
